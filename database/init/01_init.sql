@@ -1,0 +1,1 @@
+-- Extra MySQL init (tables are created by SQLAlchemy/Alembic)
