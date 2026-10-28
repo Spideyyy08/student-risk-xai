@@ -9,6 +9,8 @@ venv/
 
 # Secrets
 .env
+.env.*
+.vscode
 
 # Data (keep folders, not contents - student data is sensitive)
 data/raw/*
