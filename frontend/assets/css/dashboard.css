@@ -1,1 +1,369 @@
-/* Dashboard styles */
+/* Dashboard Specific Styles */
+
+/* Interactive Division Filter Toolbar */
+.dashboard-filter-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filter-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-toolbar-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: 4px;
+}
+
+.filter-pill-btn {
+  background: #F1F4F8;
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font-sans);
+}
+
+.filter-pill-btn:hover {
+  background: #E2E8F0;
+  color: var(--ink);
+}
+
+.filter-pill-btn.active {
+  background: var(--ink);
+  color: #FFFFFF;
+  border-color: var(--ink);
+}
+
+.filter-toolbar-meta {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+/* Summary Strip: responsive grid that adapts from 4 columns to 2x2 on mobile */
+.summary-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-subtle);
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.summary-cell {
+  padding: 16px 20px;
+  border-right: 1px solid var(--border);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.summary-cell:last-child {
+  border-right: none;
+}
+
+.summary-cell-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.summary-cell-content {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.summary-cell-number {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.summary-cell-meta {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* 3px colored top borders for risk cells */
+.cell-high-risk {
+  border-top: 3px solid var(--risk-high);
+}
+
+.cell-high-risk .summary-cell-number {
+  color: var(--risk-high);
+}
+
+.cell-medium-risk {
+  border-top: 3px solid var(--risk-medium);
+}
+
+.cell-medium-risk .summary-cell-number {
+  color: var(--risk-medium);
+}
+
+.cell-low-risk {
+  border-top: 3px solid var(--risk-low);
+}
+
+.cell-low-risk .summary-cell-number {
+  color: var(--risk-low);
+}
+
+.chart-card-body {
+  position: relative;
+  height: 290px;
+  padding: 16px;
+}
+
+/* Card Dataviz Header & Toggles */
+.chart-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.chart-toggle-group {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.chart-toggle-btn {
+  background: #F8F9FA;
+  border: none;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font-sans);
+}
+
+.chart-toggle-btn:not(:last-child) {
+  border-right: 1px solid var(--border);
+}
+
+.chart-toggle-btn:hover {
+  background: #EEF2F6;
+  color: var(--ink);
+}
+
+.chart-toggle-btn.active {
+  background: var(--ink);
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+/* Compact Intervention Feed */
+.intervention-feed {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.intervention-feed-item {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.intervention-feed-item:last-child {
+  border-bottom: none;
+}
+
+.feed-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.feed-student-name {
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--ink);
+}
+
+.feed-item-action {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.feed-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Student Portal View */
+.student-portal-banner {
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--risk-high);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.student-portal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.student-portal-meta {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Administrative Overview Banner (HOD / Admin Role) */
+.admin-overview-banner {
+  background: linear-gradient(135deg, #1B2B4B 0%, #243B6B 100%);
+  color: #FFFFFF;
+  border-radius: var(--radius);
+  padding: 18px 22px;
+  margin-bottom: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  box-shadow: var(--shadow-subtle);
+}
+
+.admin-banner-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.admin-banner-sub {
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.admin-banner-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-admin-export {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #FFFFFF;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.btn-admin-export:hover {
+  background: #FFFFFF;
+  color: var(--ink);
+}
+
+@media (max-width: 860px) {
+  .summary-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .summary-cell {
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .summary-cell:nth-child(2n) {
+    border-right: none;
+  }
+  .summary-cell:nth-child(3),
+  .summary-cell:nth-child(4) {
+    border-bottom: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .chart-card-body {
+    height: 240px;
+    padding: 10px;
+  }
+  .dashboard-filter-toolbar {
+    padding: 10px 12px;
+  }
+  .filter-toolbar-left {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .filter-toolbar-label {
+    display: none;
+  }
+  .filter-pill-btn {
+    white-space: nowrap;
+    font-size: 11.5px;
+    padding: 4px 10px;
+  }
+}
+
+@media (max-width: 440px) {
+  .summary-cell {
+    padding: 10px 12px;
+  }
+  .summary-cell-number {
+    font-size: 22px;
+  }
+  .summary-cell-title {
+    font-size: 11px;
+  }
+  .summary-cell-meta {
+    font-size: 11.5px;
+  }
+}

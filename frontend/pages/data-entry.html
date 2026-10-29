@@ -1,13 +1,281 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Attendance / quiz / assignment entry and CSV upload</title>
-  <link rel="stylesheet" href="/assets/css/base.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Entry &amp; Ingestion — VIT Academic Risk</title>
+  <meta name="description" content="Enter continuous evaluation metrics, test scores, attendance, or batch upload academic records via CSV." />
+  <link rel="stylesheet" href="/assets/css/base.css" />
+  <link rel="stylesheet" href="/assets/css/layout.css" />
+  <link rel="stylesheet" href="/assets/css/components.css" />
+  <style>
+    .form-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .form-row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 768px) {
+      .form-row-2, .form-row-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
-<body>
-  <h1>Attendance / quiz / assignment entry and CSV upload</h1>
-  <!-- TODO -->
+<body data-page-title="Data Entry &amp; Ingestion">
+
+  <!-- Tabs Navigation -->
+  <nav class="tabs-nav" role="tablist" aria-label="Data Ingestion Types">
+    <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-tab="tabAttendance" id="tabBtnAtt">Attendance</button>
+    <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="tabQuiz" id="tabBtnQuiz">Quiz &amp; Tests</button>
+    <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="tabAssign" id="tabBtnAssign">Assignments</button>
+    <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="tabBulk" id="tabBtnBulk">Bulk Upload</button>
+  </nav>
+
+  <!-- 1. TAB: Attendance -->
+  <div class="tab-panel active" id="tabAttendance" role="tabpanel" aria-labelledby="tabBtnAtt">
+    <div class="card" style="max-width: 680px;">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Log Subject Attendance</h2>
+          <div class="card-subtitle">Record daily lecture or lab attendance session</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <form id="attendanceEntryForm" novalidate>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="attDivisionSelect" class="form-label">Division</label>
+              <select id="attDivisionSelect" class="form-select" required>
+                <option value="SEDA-A">SEDA-A</option>
+                <option value="SEDA-B">SEDA-B</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="attSubjectSelect" class="form-label">Subject</label>
+              <select id="attSubjectSelect" class="form-select" required>
+                <option value="CS301">CS301 — Data Structures &amp; Algorithms</option>
+                <option value="CS302">CS302 — Database Management Systems</option>
+                <option value="CS303">CS303 — Discrete Mathematics</option>
+                <option value="CS304">CS304 — Computer Organization</option>
+                <option value="CS305">CS305 — Python Programming</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="attStudentSelect" class="form-label">Student</label>
+              <select id="attStudentSelect" class="form-select" required>
+                <option value="">Select student...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="attDateInput" class="form-label">Session Date</label>
+              <input type="date" id="attDateInput" class="form-control" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="attValueInput" class="form-label">Cumulative Attendance Percentage (%)</label>
+            <input type="number" min="0" max="100" id="attValueInput" class="form-control" placeholder="e.g. 78" required />
+            <div id="attValError" class="form-error" style="display: none;">Must be between 0 and 100%.</div>
+          </div>
+
+          <div id="attSuccessMsg" class="footnote" style="color: var(--risk-low); display: none;"></div>
+
+          <button type="submit" class="btn btn-primary" style="margin-top: 8px;">Save Attendance Record</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. TAB: Quiz & Tests -->
+  <div class="tab-panel" id="tabQuiz" role="tabpanel" aria-labelledby="tabBtnQuiz">
+    <div class="card" style="max-width: 680px;">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Record Continuous Assessment Score</h2>
+          <div class="card-subtitle">Log unit test, surprise quiz, or mid-sem exam marks</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <form id="quizEntryForm" novalidate>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="quizStudentSelect" class="form-label">Student</label>
+              <select id="quizStudentSelect" class="form-select" required>
+                <option value="">Select student...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="quizSubjectSelect" class="form-label">Subject</label>
+              <select id="quizSubjectSelect" class="form-select" required>
+                <option value="CS301">CS301 — Data Structures &amp; Algorithms</option>
+                <option value="CS302">CS302 — Database Management Systems</option>
+                <option value="CS303">CS303 — Discrete Mathematics</option>
+                <option value="CS304">CS304 — Computer Organization</option>
+                <option value="CS305">CS305 — Python Programming</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="quizTypeSelect" class="form-label">Assessment Name</label>
+            <select id="quizTypeSelect" class="form-select" required>
+              <option value="Quiz 1">Quiz 1 (Unit 1 &amp; 2)</option>
+              <option value="Quiz 2">Quiz 2 (Unit 3 &amp; 4)</option>
+              <option value="Mid-Sem">Mid-Semester Internal Exam</option>
+              <option value="Lab Test">Practical Coding Test</option>
+            </select>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="quizScoreInput" class="form-label">Marks Obtained</label>
+              <input type="number" step="0.5" id="quizScoreInput" class="form-control" placeholder="e.g. 38" required />
+            </div>
+            <div class="form-group">
+              <label for="quizMaxInput" class="form-label">Maximum Marks</label>
+              <input type="number" id="quizMaxInput" class="form-control" value="50" required />
+            </div>
+          </div>
+
+          <div id="quizErrorMsg" class="form-error" style="display: none;">Marks obtained cannot exceed maximum marks.</div>
+          <div id="quizSuccessMsg" class="footnote" style="color: var(--risk-low); display: none;"></div>
+
+          <button type="submit" class="btn btn-primary" style="margin-top: 8px;">Record Assessment Marks</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. TAB: Assignments -->
+  <div class="tab-panel" id="tabAssign" role="tabpanel" aria-labelledby="tabBtnAssign">
+    <div class="card" style="max-width: 680px;">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Record Assignment &amp; Lab Submissions</h2>
+          <div class="card-subtitle">Log journal evaluation and timely submission milestones</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <form id="assignEntryForm" novalidate>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="assStudentSelect" class="form-label">Student</label>
+              <select id="assStudentSelect" class="form-select" required>
+                <option value="">Select student...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="assSubjectSelect" class="form-label">Subject</label>
+              <select id="assSubjectSelect" class="form-select" required>
+                <option value="CS301">CS301 — Data Structures &amp; Algorithms</option>
+                <option value="CS302">CS302 — Database Management Systems</option>
+                <option value="CS303">CS303 — Discrete Mathematics</option>
+                <option value="CS304">CS304 — Computer Organization</option>
+                <option value="CS305">CS305 — Python Programming</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="assTitleInput" class="form-label">Assignment Title</label>
+            <input type="text" id="assTitleInput" class="form-control" placeholder="e.g. Lab Experiment 4: B-Trees Implementation" required />
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="assStatusSelect" class="form-label">Submission Status</label>
+              <select id="assStatusSelect" class="form-select" required>
+                <option value="Submitted on time">Submitted on time</option>
+                <option value="Submitted late">Submitted late</option>
+                <option value="Defaulter (Missing)">Defaulter (Missing)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="assScoreInput" class="form-label">Grade / Score (/10)</label>
+              <input type="number" min="0" max="10" id="assScoreInput" class="form-control" value="8" required />
+            </div>
+          </div>
+
+          <div id="assSuccessMsg" class="footnote" style="color: var(--risk-low); display: none;"></div>
+
+          <button type="submit" class="btn btn-primary" style="margin-top: 8px;">Save Assignment Record</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. TAB: Bulk Upload -->
+  <div class="tab-panel" id="tabBulk" role="tabpanel" aria-labelledby="tabBtnBulk">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Bulk CSV / Excel Academic Data Ingestion</h2>
+          <div class="card-subtitle">Batch update class attendance, continuous assessment, and internal marks</div>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" id="btnDownloadTemplate">
+          Download CSV template
+        </button>
+      </div>
+      <div class="card-body">
+        <!-- Dropzone Box -->
+        <div class="dropzone-box" id="dropZoneBox">
+          <svg class="dropzone-icon" style="width: 36px; height: 36px; stroke: currentColor; fill: none; stroke-width: 1.5;" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <div style="font-weight: 600; color: var(--ink); margin-bottom: 4px;">Drag and drop batch CSV or Excel file here</div>
+          <div class="text-muted" style="font-size: 12px; margin-bottom: 12px;">Supported file formats: .csv, .xlsx (max 5MB)</div>
+          <input type="file" id="fileUploadInput" accept=".csv, .xlsx" style="display: none;" />
+          <button type="button" class="btn btn-secondary btn-sm" id="btnBrowseFile">Browse files</button>
+        </div>
+
+        <div id="fileUploadStatus" class="footnote" style="margin: 12px 0; display: none;"></div>
+
+        <!-- Preview Table Box (First 5 rows) -->
+        <div id="previewTableContainer" style="margin-top: 24px; display: none;">
+          <h3 style="font-size: 14px; margin-bottom: 10px;">Ingestion Data Preview (First 5 Rows)</h3>
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Roll No</th>
+                  <th>Student Name</th>
+                  <th>Division</th>
+                  <th class="text-right">Attendance (%)</th>
+                  <th class="text-right">Quiz Score</th>
+                  <th class="text-right">Assignment (%)</th>
+                  <th class="text-right">Backlogs</th>
+                </tr>
+              </thead>
+              <tbody id="previewTableBody"></tbody>
+            </table>
+          </div>
+
+          <div style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 8px;">
+            <button type="button" class="btn btn-secondary" id="btnCancelBatch">Discard</button>
+            <button type="button" class="btn btn-primary" id="btnConfirmBatch">Confirm &amp; Run Model Ingestion</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/js/config.js"></script>
+  <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/mock-data.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/custom-select.js"></script>
+  <script src="/assets/js/layout.js"></script>
+  <script src="/assets/js/data-entry.js"></script>
 </body>
 </html>

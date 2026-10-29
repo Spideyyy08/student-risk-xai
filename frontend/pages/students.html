@@ -1,13 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Students list with risk filter</title>
-  <link rel="stylesheet" href="/assets/css/base.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Students Directory — VIT Academic Risk</title>
+  <meta name="description" content="Searchable and filterable student directory with risk ratings, attendance, and assessment metrics." />
+  <link rel="stylesheet" href="/assets/css/base.css" />
+  <link rel="stylesheet" href="/assets/css/layout.css" />
+  <link rel="stylesheet" href="/assets/css/components.css" />
+  <style>
+    .filter-panel {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .filter-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr auto;
+      gap: 12px;
+      align-items: flex-end;
+    }
+    .filter-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .pagination-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      background-color: #FAFAFA;
+      font-size: 13px;
+    }
+    .pagination-controls {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    @media (max-width: 900px) {
+      .filter-grid {
+        grid-template-columns: 1fr;
+      }
+      .filter-actions {
+        margin-top: 8px;
+      }
+    }
+  </style>
 </head>
-<body>
-  <h1>Students list with risk filter</h1>
-  <!-- TODO -->
+<body data-page-title="Students Directory">
+
+  <!-- Filter Bar Box -->
+  <section class="filter-panel" aria-label="Student Filters">
+    <form id="filterForm">
+      <div class="filter-grid">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="searchInput" class="form-label">Search Student</label>
+          <input type="text" id="searchInput" class="form-control" placeholder="Search by name, roll no, or ID..." />
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="divisionSelect" class="form-label">Division</label>
+          <select id="divisionSelect" class="form-select">
+            <option value="ALL">All Divisions</option>
+            <option value="SEDA-A">SEDA-A</option>
+            <option value="SEDA-B">SEDA-B</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="riskSelect" class="form-label">Risk Level</label>
+          <select id="riskSelect" class="form-select">
+            <option value="ALL">All Risk Levels</option>
+            <option value="HIGH">High Risk</option>
+            <option value="MEDIUM">Medium Risk</option>
+            <option value="LOW">Low Risk</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="subjectSelect" class="form-label">Focus Subject</label>
+          <select id="subjectSelect" class="form-select">
+            <option value="ALL">All Subjects</option>
+            <option value="DSA">Data Structures &amp; Algorithms</option>
+            <option value="DBMS">Database Systems</option>
+            <option value="DM">Discrete Mathematics</option>
+            <option value="COA">Computer Organization</option>
+            <option value="Python">Python Programming</option>
+          </select>
+        </div>
+
+        <div class="filter-actions">
+          <button type="submit" class="btn btn-primary" id="btnApplyFilters">Apply</button>
+          <button type="button" class="btn btn-secondary" id="btnResetFilters">Reset</button>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <!-- Full Table with Sorting and Pagination -->
+  <section class="card" aria-label="Students List Table">
+    <div class="card-header" style="flex-wrap: wrap; gap: 10px;">
+      <div>
+        <h2 class="card-title">Enrolled Students</h2>
+        <div class="card-subtitle" id="tableRecordCount">Loading records...</div>
+      </div>
+      <button type="button" class="btn btn-secondary btn-sm" id="btnExportStudentsCsv">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export Cohort CSV
+      </button>
+    </div>
+    <div class="card-body" style="padding: 0;">
+      <div class="table-container" style="border: none;">
+        <table class="table" id="studentsTable">
+          <thead>
+            <tr>
+              <th class="sortable" data-sort="roll">Roll No <span class="sort-indicator" id="sortRoll"></span></th>
+              <th class="sortable" data-sort="name">Student Name <span class="sort-indicator" id="sortName"></span></th>
+              <th>Division</th>
+              <th class="sortable" data-sort="risk">Risk Level <span class="sort-indicator" id="sortRisk"></span></th>
+              <th class="text-right sortable" data-sort="att">Attendance (%) <span class="sort-indicator" id="sortAtt"></span></th>
+              <th class="text-right sortable" data-sort="quiz">Quiz Avg <span class="sort-indicator" id="sortQuiz"></span></th>
+              <th class="text-right">Assignments</th>
+              <th class="text-right">Internal Marks</th>
+              <th class="text-right sortable" data-sort="backlogs">Backlogs <span class="sort-indicator" id="sortBacklogs"></span></th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="studentsTableBody">
+            <tr>
+              <td colspan="10" class="state-loading">Loading student records...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination-bar">
+        <span class="text-muted" id="paginationSummary">Showing 0 of 0</span>
+        <div class="pagination-controls">
+          <button type="button" class="btn btn-secondary btn-sm" id="btnPrevPage" disabled>Previous</button>
+          <span class="mono" id="pageIndicator" style="padding: 0 8px;">Page 1</span>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnNextPage" disabled>Next</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script src="/assets/js/config.js"></script>
+  <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/mock-data.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/custom-select.js"></script>
+  <script src="/assets/js/layout.js"></script>
+  <script src="/assets/js/students.js"></script>
 </body>
 </html>

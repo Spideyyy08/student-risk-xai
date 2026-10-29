@@ -1,13 +1,224 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>What-If Simulator</title>
-  <link rel="stylesheet" href="/assets/css/base.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>What-If Academic Simulator — VIT Academic Risk</title>
+  <meta name="description" content="Simulate how adjustments in attendance, quiz marks, and assignments impact student academic risk in real time." />
+  <link rel="stylesheet" href="/assets/css/base.css" />
+  <link rel="stylesheet" href="/assets/css/layout.css" />
+  <link rel="stylesheet" href="/assets/css/components.css" />
+  <link rel="stylesheet" href="/assets/css/simulator.css" />
 </head>
-<body>
-  <h1>What-If Simulator</h1>
-  <!-- TODO -->
+<body data-page-title="What-If Academic Simulator">
+
+  <!-- Top Bar Box: Student Selector + Reset -->
+  <section class="card" aria-label="Student Selection for Simulation">
+    <div class="card-body" style="padding: 14px 20px;">
+      <div class="simulator-student-selector">
+        <div class="selector-left">
+          <label for="studentSelect" class="form-label" style="margin-bottom: 0; white-space: nowrap;">Target Student:</label>
+          <select id="studentSelect" class="form-select" style="min-width: 280px;">
+            <option value="">Loading student roster...</option>
+          </select>
+          <span class="recalculating-indicator" id="recalcStatus" aria-live="polite">Recalculating...</span>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" id="btnResetSimulation">
+          Reset to current values
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Two Columns: 5/12 Adjust inputs | 7/12 Predicted risk + SHAP changes -->
+  <div class="grid-5-7">
+    <!-- Left Column (5/12): Adjust inputs -->
+    <section class="card" aria-labelledby="headingAdjustInputs">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title" id="headingAdjustInputs">Adjust Academic Inputs</h2>
+          <div class="card-subtitle">Tune parameters to simulate academic turnaround scenarios</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <!-- 1. Attendance % -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <label for="sliderAttendance" class="slider-label">Attendance (%)</label>
+            <div class="slider-readout">
+              <span class="slider-baseline" id="baseAttendance">was 0%</span>
+              <span class="slider-val" id="valAttendance">0%</span>
+            </div>
+          </div>
+          <input type="range" min="0" max="100" step="1" id="sliderAttendance" class="range-slider" />
+        </div>
+
+        <!-- 2. Average Quiz Score -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <label for="sliderQuiz" class="slider-label">Continuous Quiz Average (/100)</label>
+            <div class="slider-readout">
+              <span class="slider-baseline" id="baseQuiz">was 0</span>
+              <span class="slider-val" id="valQuiz">0</span>
+            </div>
+          </div>
+          <input type="range" min="0" max="100" step="1" id="sliderQuiz" class="range-slider" />
+        </div>
+
+        <!-- 3. Assignment Completion % -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <label for="sliderAssignment" class="slider-label">Assignment Completion (%)</label>
+            <div class="slider-readout">
+              <span class="slider-baseline" id="baseAssignment">was 0%</span>
+              <span class="slider-val" id="valAssignment">0%</span>
+            </div>
+          </div>
+          <input type="range" min="0" max="100" step="1" id="sliderAssignment" class="range-slider" />
+        </div>
+
+        <!-- 4. Internal Marks -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <label for="sliderInternal" class="slider-label">Mid-Sem Internal Marks (/30)</label>
+            <div class="slider-readout">
+              <span class="slider-baseline" id="baseInternal">was 0</span>
+              <span class="slider-val" id="valInternal">0</span>
+            </div>
+          </div>
+          <input type="range" min="0" max="30" step="1" id="sliderInternal" class="range-slider" />
+        </div>
+
+        <!-- 5. Practical Score -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <label for="sliderPractical" class="slider-label">Practical Score (/30)</label>
+            <div class="slider-readout">
+              <span class="slider-baseline" id="basePractical">was 0</span>
+              <span class="slider-val" id="valPractical">0</span>
+            </div>
+          </div>
+          <input type="range" min="0" max="30" step="1" id="sliderPractical" class="range-slider" />
+        </div>
+
+        <!-- 6. Backlogs Stepper -->
+        <div class="slider-group" style="margin-bottom: 0;">
+          <div class="slider-header">
+            <span class="slider-label">Active Backlogs (Courses)</span>
+            <div class="slider-readout">
+              <span class="slider-baseline" id="baseBacklogs">was 0</span>
+            </div>
+          </div>
+          <div class="stepper-control">
+            <button type="button" class="stepper-btn" id="btnBacklogDec" aria-label="Decrease backlogs">&minus;</button>
+            <span class="stepper-val mono" id="valBacklogs">0</span>
+            <button type="button" class="stepper-btn" id="btnBacklogInc" aria-label="Increase backlogs">&plus;</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column (7/12): Predicted Risk & SHAP Output -->
+    <div>
+      <!-- Predicted Risk Comparison Box -->
+      <section class="card" aria-labelledby="headingPredictedRisk">
+        <div class="card-header">
+          <h2 class="card-title" id="headingPredictedRisk">Simulated Academic Risk</h2>
+        </div>
+        <div class="card-body">
+          <div class="comparison-box">
+            <div class="risk-shift-row">
+              <div class="risk-state-card">
+                <span class="risk-state-title">Current Status</span>
+                <span id="currentRiskBadge"></span>
+              </div>
+              <span class="shift-arrow">&rarr;</span>
+              <div class="risk-state-card">
+                <span class="risk-state-title">Simulated Forecast</span>
+                <span id="simulatedRiskBadge"></span>
+              </div>
+            </div>
+
+            <!-- Shift banner -->
+            <div class="shift-summary-banner" id="shiftSummaryText" aria-live="polite">
+              Evaluating parameters...
+            </div>
+
+            <!-- Dual Probability Comparison -->
+            <div class="dual-prob-comparison">
+              <div>
+                <div class="prob-column-title">Current Probabilities</div>
+                <div class="probability-group">
+                  <div class="prob-row">
+                    <span class="prob-label">Low</span>
+                    <div class="prob-bar-track"><div class="prob-bar-fill prob-bar-low" id="currProbLowBar" style="width: 0%;"></div></div>
+                    <span class="prob-val" id="currProbLowVal">0%</span>
+                  </div>
+                  <div class="prob-row">
+                    <span class="prob-label">Med</span>
+                    <div class="prob-bar-track"><div class="prob-bar-fill prob-bar-medium" id="currProbMedBar" style="width: 0%;"></div></div>
+                    <span class="prob-val" id="currProbMedVal">0%</span>
+                  </div>
+                  <div class="prob-row">
+                    <span class="prob-label">High</span>
+                    <div class="prob-bar-track"><div class="prob-bar-fill prob-bar-high" id="currProbHighBar" style="width: 0%;"></div></div>
+                    <span class="prob-val" id="currProbHighVal">0%</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div class="prob-column-title">Simulated Probabilities</div>
+                <div class="probability-group">
+                  <div class="prob-row">
+                    <span class="prob-label">Low</span>
+                    <div class="prob-bar-track"><div class="prob-bar-fill prob-bar-low" id="simProbLowBar" style="width: 0%;"></div></div>
+                    <span class="prob-val" id="simProbLowVal">0%</span>
+                  </div>
+                  <div class="prob-row">
+                    <span class="prob-label">Med</span>
+                    <div class="prob-bar-track"><div class="prob-bar-fill prob-bar-medium" id="simProbMedBar" style="width: 0%;"></div></div>
+                    <span class="prob-val" id="simProbMedVal">0%</span>
+                  </div>
+                  <div class="prob-row">
+                    <span class="prob-label">High</span>
+                    <div class="prob-bar-track"><div class="prob-bar-fill prob-bar-high" id="simProbHighBar" style="width: 0%;"></div></div>
+                    <span class="prob-val" id="simProbHighVal">0%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- What changed the prediction (SHAP factors) -->
+      <section class="card" aria-labelledby="headingWhatChanged">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title" id="headingWhatChanged">What changed the prediction</h2>
+            <div class="card-subtitle">Simulated SHAP feature impact under current scenario</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="shap-list" id="simShapContainer">
+            <div class="state-loading">Calculating simulated SHAP weights...</div>
+          </div>
+          <p class="footnote">Simulated predictions reflect algorithmic sensitivities to guide remediation goals.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="/assets/vendor/chart.umd.js"></script>
+  <script src="/assets/js/config.js"></script>
+  <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/mock-data.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/custom-select.js"></script>
+  <script src="/assets/js/layout.js"></script>
+  <script src="/assets/js/charts.js"></script>
+  <script src="/assets/js/simulator.js"></script>
 </body>
 </html>

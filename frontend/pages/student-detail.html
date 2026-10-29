@@ -1,13 +1,414 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Student detail - risk, SHAP factors, trends, recommendations</title>
-  <link rel="stylesheet" href="/assets/css/base.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Academic Profile — VIT Academic Risk</title>
+  <meta name="description" content="Detailed individual student profile with SHAP explainability, subject-level breakdowns, longitudinal trends, and recommendations." />
+  <link rel="stylesheet" href="/assets/css/base.css" />
+  <link rel="stylesheet" href="/assets/css/layout.css" />
+  <link rel="stylesheet" href="/assets/css/components.css" />
+  <style>
+    .student-header-box {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .student-header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .student-name-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .student-title-name {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .student-meta-strip {
+      display: flex;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+    }
+    .student-meta-strip strong {
+      color: var(--text);
+    }
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+    /* Definition list for Key Indicators */
+    .indicator-dl {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      row-gap: 12px;
+      font-size: 13px;
+    }
+    .indicator-dl dt {
+      color: var(--text);
+      font-weight: 500;
+    }
+    .indicator-dl dd {
+      text-align: right;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: var(--ink);
+    }
+    /* Recommendations styling */
+    .rec-card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .rec-main {
+      flex: 1;
+    }
+    .rec-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .rec-subject {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .rec-action {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }
+    .rec-reason {
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
+    .rec-assign-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text);
+      white-space: nowrap;
+      padding-top: 2px;
+    }
+    /* Quick Intervention Modal */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-backdrop.open {
+      display: flex;
+    }
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      overflow: hidden;
+    }
+    .modal-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink);
+      margin: 0;
+    }
+    .modal-close-btn {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+    .modal-body {
+      padding: 18px;
+    }
+    .modal-footer {
+      padding: 12px 18px;
+      border-top: 1px solid var(--border);
+      background-color: #FAFAFA;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+  </style>
 </head>
-<body>
-  <h1>Student detail - risk, SHAP factors, trends, recommendations</h1>
-  <!-- TODO -->
+<body data-page-title="Student Academic Profile">
+
+  <!-- Student Header Box -->
+  <section class="student-header-box" aria-label="Student Profile Header">
+    <div class="student-header-left">
+      <div class="student-name-row">
+        <h2 class="student-title-name" id="studentName">Loading...</h2>
+        <span id="studentRiskBadge"></span>
+      </div>
+      <div class="student-meta-strip">
+        <span>Roll No: <strong class="mono" id="studentRoll">-</strong></span>
+        <span>Division: <strong id="studentDiv">-</strong></span>
+        <span>Semester: <strong id="studentSem">-</strong></span>
+        <span>Last updated: <span id="studentUpdated">-</span></span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="#" id="btnOpenSimulator" class="btn btn-secondary">Open in simulator</a>
+      <button type="button" id="btnLogIntervention" class="btn btn-primary">Log intervention</button>
+    </div>
+  </section>
+
+  <!-- Tabs Navigation -->
+  <nav class="tabs-nav" role="tablist" aria-label="Student Profile Views">
+    <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-tab="tabOverview" id="tabBtnOverview">Overview</button>
+    <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="tabSubjects" id="tabBtnSubjects">Subjects</button>
+    <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="tabTrends" id="tabBtnTrends">Trends</button>
+    <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="tabRecs" id="tabBtnRecs">Recommendations</button>
+  </nav>
+
+  <!-- 1. TAB: Overview -->
+  <div class="tab-panel active" id="tabOverview" role="tabpanel" aria-labelledby="tabBtnOverview">
+    <div class="grid-7-5">
+      <!-- Left 7/12: Why this risk level (SHAP bars) -->
+      <section class="card" aria-labelledby="headingShapOverview">
+        <div class="card-header">
+          <div>
+            <h3 class="card-title" id="headingShapOverview">Why this risk level</h3>
+            <div class="card-subtitle">SHAP feature contributions explaining the prediction</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="shap-list" id="shapListContainer">
+            <div class="state-loading">Calculating SHAP feature weights...</div>
+          </div>
+          <p class="footnote">SHAP shows what the model weighed, not proof of cause.</p>
+        </div>
+      </section>
+
+      <!-- Right 5/12: Key Indicators + Probability stacked -->
+      <div>
+        <section class="card" aria-labelledby="headingKeyIndicators">
+          <div class="card-header">
+            <h3 class="card-title" id="headingKeyIndicators">Key indicators</h3>
+          </div>
+          <div class="card-body">
+            <dl class="indicator-dl">
+              <dt>Attendance</dt>
+              <dd id="indAttendance">-</dd>
+              <dt>Continuous Quiz Average</dt>
+              <dd id="indQuiz">-</dd>
+              <dt>Assignment Completion</dt>
+              <dd id="indAssignment">-</dd>
+              <dt>Mid-Sem Internal Marks</dt>
+              <dd id="indInternal">-</dd>
+              <dt>Active Backlogs</dt>
+              <dd id="indBacklogs">-</dd>
+            </dl>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="headingProbability">
+          <div class="card-header">
+            <h3 class="card-title" id="headingProbability">Prediction probabilities</h3>
+          </div>
+          <div class="card-body">
+            <div class="probability-group">
+              <div class="prob-row">
+                <span class="prob-label">Low</span>
+                <div class="prob-bar-track">
+                  <div class="prob-bar-fill prob-bar-low" id="probLowBar" style="width: 0%;"></div>
+                </div>
+                <span class="prob-val" id="probLowVal">0%</span>
+              </div>
+              <div class="prob-row">
+                <span class="prob-label">Medium</span>
+                <div class="prob-bar-track">
+                  <div class="prob-bar-fill prob-bar-medium" id="probMedBar" style="width: 0%;"></div>
+                </div>
+                <span class="prob-val" id="probMedVal">0%</span>
+              </div>
+              <div class="prob-row">
+                <span class="prob-label">High</span>
+                <div class="prob-bar-track">
+                  <div class="prob-bar-fill prob-bar-high" id="probHighBar" style="width: 0%;"></div>
+                </div>
+                <span class="prob-val" id="probHighVal">0%</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. TAB: Subjects -->
+  <div class="tab-panel" id="tabSubjects" role="tabpanel" aria-labelledby="tabBtnSubjects">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h3 class="card-title">Subject-wise Academic Performance</h3>
+          <div class="card-subtitle">Continuous evaluation breakdown across all 5 registered courses</div>
+        </div>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <div class="table-container" style="border: none;">
+          <table class="table" id="subjectsTable">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Course Title</th>
+                <th class="text-right">Attendance (%)</th>
+                <th class="text-right">Quiz Score (/100)</th>
+                <th class="text-right">Assignments (%)</th>
+                <th class="text-right">Internal (/30)</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="subjectsTableBody">
+              <tr><td colspan="7" class="state-loading">Loading subject details...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Attendance vs Quiz Comparison by Subject</h3>
+      </div>
+      <div class="card-body chart-card-body">
+        <canvas id="subjectBarCanvas" aria-label="Subject comparison bar chart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. TAB: Trends -->
+  <div class="tab-panel" id="tabTrends" role="tabpanel" aria-labelledby="tabBtnTrends">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h3 class="card-title">6-Month Attendance &amp; Quiz Trajectory</h3>
+            <div class="card-subtitle">May 2026 to October 2026</div>
+          </div>
+        </div>
+        <div class="card-body chart-card-body">
+          <canvas id="trendLineCanvas" aria-label="6-month trend line chart"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h3 class="card-title">Past Semester SGPA</h3>
+            <div class="card-subtitle">Historical semester grade point average</div>
+          </div>
+        </div>
+        <div class="card-body chart-card-body">
+          <canvas id="sgpaBarCanvas" aria-label="Past SGPA bar chart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. TAB: Recommendations -->
+  <div class="tab-panel" id="tabRecs" role="tabpanel" aria-labelledby="tabBtnRecs">
+    <section class="card" aria-label="Recommended Interventions">
+      <div class="card-header">
+        <div>
+          <h3 class="card-title">Personalized Early Intervention Recommendations</h3>
+          <div class="card-subtitle">Algorithmically generated action items prioritizing student learning recovery</div>
+        </div>
+      </div>
+      <div class="card-body" id="recsContainer">
+        <div class="state-loading">Loading recommendations...</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Quick Intervention Modal Dialog -->
+  <div class="modal-backdrop" id="interventionModal" role="dialog" aria-modal="true" aria-labelledby="modalInterventionTitle">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalInterventionTitle">Log Academic Intervention</h3>
+        <button type="button" class="modal-close-btn" id="btnCloseModal" aria-label="Close dialog">&times;</button>
+      </div>
+      <form id="quickInterventionForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="modalStudentName" class="form-label">Student</label>
+            <input type="text" id="modalStudentName" class="form-control" readonly />
+          </div>
+          <div class="form-group">
+            <label for="modalInterventionType" class="form-label">Intervention Type</label>
+            <select id="modalInterventionType" class="form-select" required>
+              <option value="Counselling">Counselling</option>
+              <option value="Extra class">Extra class</option>
+              <option value="Parent meeting">Parent meeting</option>
+              <option value="Mentor assigned">Mentor assigned</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="modalDate" class="form-label">Scheduled Date</label>
+            <input type="date" id="modalDate" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label for="modalNotes" class="form-label">Intervention Notes &amp; Action Plan</label>
+            <textarea id="modalNotes" class="form-textarea" placeholder="Detail action items agreed upon..." required></textarea>
+          </div>
+          <div id="modalError" class="form-error" style="display: none;"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btnCancelModal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveModal">Save Intervention</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/assets/vendor/chart.umd.js"></script>
+  <script src="/assets/js/config.js"></script>
+  <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/mock-data.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/custom-select.js"></script>
+  <script src="/assets/js/layout.js"></script>
+  <script src="/assets/js/charts.js"></script>
+  <script src="/assets/js/student-detail.js"></script>
 </body>
 </html>

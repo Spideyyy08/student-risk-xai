@@ -1,5 +1,6 @@
-$Root = Split-Path -Parent $PSScriptRoot
-& "$Root\.venv\Scripts\Activate.ps1"
-$env:PYTHONPATH = $Root
-Set-Location $Root
-pytest -v
+# Run Pytest Test Suite
+$ErrorActionPreference = "Stop"
+
+$env:PYTHONPATH = "$PSScriptRoot\..;$PSScriptRoot\..\backend"
+Write-Host "Executing backend and ML pipeline unit test suite..."
+pytest -q backend/tests

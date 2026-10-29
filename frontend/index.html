@@ -1,13 +1,331 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - Student Academic Risk System</title>
-  <link rel="stylesheet" href="/assets/css/base.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — Academic Portal</title>
+  <meta name="description" content="Explainable AI-Based Student Academic Risk Prediction and Personalized Early Intervention System." />
+  <link rel="stylesheet" href="/assets/css/base.css" />
+  <link rel="stylesheet" href="/assets/css/components.css" />
+  <style>
+    body {
+      min-height: 100vh;
+      background-color: #F0F2F6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      font-family: var(--font-sans);
+      margin: 0;
+    }
+
+    .login-center-wrapper {
+      width: 100%;
+      max-width: 440px;
+    }
+
+    /* Main Card */
+    .login-card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 38px 34px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    .login-card-header {
+      text-align: center;
+      margin-bottom: 26px;
+    }
+
+    .login-card-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--ink);
+      margin: 0 0 6px 0;
+      letter-spacing: -0.01em;
+    }
+
+    .login-card-desc {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      margin: 0;
+      line-height: 1.45;
+    }
+
+    .form-group-lg {
+      margin-bottom: 18px;
+    }
+
+    .form-label-lg {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+
+    .form-control-lg {
+      width: 100%;
+      height: 44px;
+      padding: 8px 14px;
+      font-size: 14.5px;
+      color: var(--text);
+      background-color: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: var(--font-sans);
+      transition: all 0.15s ease;
+      box-sizing: border-box;
+    }
+
+    .form-control-lg:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(138, 109, 47, 0.16);
+    }
+
+    .password-wrapper {
+      position: relative;
+    }
+
+    .btn-toggle-pass {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 4px;
+      user-select: none;
+    }
+
+    .btn-toggle-pass:hover {
+      color: var(--ink);
+    }
+
+    .btn-login {
+      width: 100%;
+      height: 44px;
+      background-color: var(--ink);
+      color: #FFFFFF;
+      font-size: 14.5px;
+      font-weight: 600;
+      border-radius: var(--radius);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background-color 0.15s ease, transform 0.05s ease;
+      margin-top: 8px;
+      font-family: var(--font-sans);
+    }
+
+    .btn-login:hover {
+      background-color: var(--ink-hover);
+    }
+
+    .btn-login:active {
+      transform: translateY(1px);
+    }
+
+    .btn-login:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    /* Role Quick-Pick Chips */
+    .role-section {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .role-section-label {
+      font-size: 11.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .role-chips {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .role-chip {
+      background: #F4F6F9;
+      border: 1px solid #DCE1E8;
+      border-radius: var(--radius);
+      padding: 8px 6px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-family: var(--font-sans);
+    }
+
+    .role-chip:hover {
+      background: #EAEFF6;
+      border-color: var(--ink);
+    }
+
+    .role-chip.active {
+      background: #FFFFFF;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent);
+    }
+
+    .role-chip-name {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .role-chip-sub {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+  </style>
 </head>
 <body>
-  <h1>Login - Student Academic Risk System</h1>
-  <!-- TODO -->
+
+  <div class="login-center-wrapper">
+    <!-- Main Centered Sign-In Card -->
+    <div class="login-card">
+      <div class="login-card-header">
+        <h1 class="login-card-title">Sign In</h1>
+        <p class="login-card-desc">Enter your credentials to access the academic portal</p>
+      </div>
+
+      <form id="loginForm" novalidate>
+        <div class="form-group-lg">
+          <label for="usernameInput" class="form-label-lg">Username / Institutional ID</label>
+          <input type="text" id="usernameInput" class="form-control-lg" autocomplete="username" required value="teacher" placeholder="e.g. teacher or prof.sharma" />
+        </div>
+
+        <div class="form-group-lg">
+          <label for="passwordInput" class="form-label-lg">Password</label>
+          <div class="password-wrapper">
+            <input type="password" id="passwordInput" class="form-control-lg" autocomplete="current-password" required value="vit2026" />
+            <button type="button" id="togglePasswordBtn" class="btn-toggle-pass" aria-label="Toggle password visibility">Show</button>
+          </div>
+        </div>
+
+        <div id="loginError" class="form-error" style="display: none; margin-bottom: 14px; padding: 10px 12px; background: #FDE8E8; border: 1px solid rgba(176,58,58,0.25); border-radius: 4px; font-size: 12.5px;"></div>
+
+        <button type="submit" id="btnSubmit" class="btn-login">
+          <span>Sign In to Dashboard</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </form>
+
+      <!-- Quick Switch Demo Roles -->
+      <div class="role-section">
+        <div class="role-section-label">Demo Accounts (1-Click Fill)</div>
+        <div class="role-chips">
+          <button type="button" class="role-chip active" id="chipTeacher" data-user="teacher" data-pass="vit2026">
+            <span class="role-chip-name">Faculty</span>
+            <span class="role-chip-sub">teacher</span>
+          </button>
+          <button type="button" class="role-chip" id="chipAdmin" data-user="admin" data-pass="admin123">
+            <span class="role-chip-name">Admin</span>
+            <span class="role-chip-sub">admin</span>
+          </button>
+          <button type="button" class="role-chip" id="chipStudent" data-user="student" data-pass="student123">
+            <span class="role-chip-name">Student</span>
+            <span class="role-chip-sub">student</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/js/config.js"></script>
+  <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/mock-data.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script>
+    (function() {
+      'use strict';
+      if (window.Auth && window.Auth.isAuthenticated()) {
+        window.location.href = '/pages/dashboard.html';
+        return;
+      }
+
+      const form = document.getElementById('loginForm');
+      const errBox = document.getElementById('loginError');
+      const btn = document.getElementById('btnSubmit');
+      const userInput = document.getElementById('usernameInput');
+      const passInput = document.getElementById('passwordInput');
+      const togglePass = document.getElementById('togglePasswordBtn');
+
+      togglePass.addEventListener('click', () => {
+        if (passInput.type === 'password') {
+          passInput.type = 'text';
+          togglePass.textContent = 'Hide';
+        } else {
+          passInput.type = 'password';
+          togglePass.textContent = 'Show';
+        }
+      });
+
+      // Role quick-fill chips
+      const chips = document.querySelectorAll('.role-chip');
+      chips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          chips.forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          userInput.value = chip.dataset.user;
+          passInput.value = chip.dataset.pass;
+          errBox.style.display = 'none';
+        });
+      });
+
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        errBox.style.display = 'none';
+        errBox.textContent = '';
+        btn.disabled = true;
+        btn.querySelector('span').textContent = 'Authenticating...';
+
+        const u = userInput.value.trim();
+        const p = passInput.value.trim();
+
+        if (!u || !p) {
+          errBox.textContent = 'Please enter both username and password.';
+          errBox.style.display = 'block';
+          btn.disabled = false;
+          btn.querySelector('span').textContent = 'Sign In to Dashboard';
+          return;
+        }
+
+        try {
+          const authData = await window.API.login(u, p);
+          window.Auth.setSession(authData);
+          window.location.href = '/pages/dashboard.html';
+        } catch (err) {
+          errBox.textContent = err.message || 'Invalid username or password.';
+          errBox.style.display = 'block';
+          btn.disabled = false;
+          btn.querySelector('span').textContent = 'Sign In to Dashboard';
+        }
+      });
+    })();
+  </script>
 </body>
 </html>

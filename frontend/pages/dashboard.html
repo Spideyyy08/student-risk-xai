@@ -1,13 +1,170 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Teacher Dashboard - class risk overview</title>
-  <link rel="stylesheet" href="/assets/css/base.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class Overview Dashboard — VIT Academic Risk</title>
+  <meta name="description" content="Class overview dashboard displaying student risk distribution, SHAP contributions, and priority attention lists." />
+  <link rel="stylesheet" href="/assets/css/base.css" />
+  <link rel="stylesheet" href="/assets/css/layout.css" />
+  <link rel="stylesheet" href="/assets/css/components.css" />
+  <link rel="stylesheet" href="/assets/css/dashboard.css" />
 </head>
-<body>
-  <h1>Teacher Dashboard - class risk overview</h1>
-  <!-- TODO -->
+<body data-page-title="Class Overview">
+
+  <!-- Student-Specific View Container (Rendered dynamically if user is STUDENT) -->
+  <div id="studentPortalContainer" style="display: none;"></div>
+
+  <!-- Faculty / Admin View Container -->
+  <div id="facultyDashboardContainer">
+    <!-- Admin Special Overview Banner (Rendered dynamically if user is ADMIN) -->
+    <div id="adminOverviewBanner" style="display: none;"></div>
+
+    <!-- Division Filter Toolbar -->
+    <div class="dashboard-filter-toolbar" aria-label="Division Filter Toolbar">
+      <div class="filter-toolbar-left">
+        <span class="filter-toolbar-label">Division Filter:</span>
+        <button type="button" class="filter-pill-btn active" data-division="ALL" id="pillDivAll">All Divisions (30)</button>
+        <button type="button" class="filter-pill-btn" data-division="SEDA-A" id="pillDivA">Division SEDA-A (15)</button>
+        <button type="button" class="filter-pill-btn" data-division="SEDA-B" id="pillDivB">Division SEDA-B (15)</button>
+      </div>
+      <div class="filter-toolbar-meta" id="cohortScopeLabel">Showing all 30 enrolled students</div>
+    </div>
+
+    <!-- 1. Summary Strip -->
+    <section class="summary-strip" aria-label="Class Risk Summary">
+      <div class="summary-cell">
+        <span class="summary-cell-title">Total Enrolled</span>
+        <div class="summary-cell-content">
+          <span class="summary-cell-number" id="totalStudentsCount">30</span>
+          <span class="summary-cell-meta" id="totalStudentsSub">across divisions</span>
+        </div>
+      </div>
+
+      <div class="summary-cell cell-high-risk">
+        <span class="summary-cell-title">High Risk</span>
+        <div class="summary-cell-content">
+          <span class="summary-cell-number" id="highRiskCount">-</span>
+          <span class="summary-cell-meta" id="highRiskPct">(-%)</span>
+        </div>
+      </div>
+
+      <div class="summary-cell cell-medium-risk">
+        <span class="summary-cell-title">Medium Risk</span>
+        <div class="summary-cell-content">
+          <span class="summary-cell-number" id="mediumRiskCount">-</span>
+          <span class="summary-cell-meta" id="mediumRiskPct">(-%)</span>
+        </div>
+      </div>
+
+      <div class="summary-cell cell-low-risk">
+        <span class="summary-cell-title">Low Risk</span>
+        <div class="summary-cell-content">
+          <span class="summary-cell-number" id="lowRiskCount">-</span>
+          <span class="summary-cell-meta" id="lowRiskPct">(-%)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Chart Row: 2/3 Stacked division chart + 1/3 Class-wide SHAP horizontal bars -->
+    <div class="grid-2-1">
+      <section class="card" aria-labelledby="headingDivisionChart">
+        <div class="chart-card-header">
+          <div>
+            <h2 class="card-title" id="headingDivisionChart">Risk distribution by division</h2>
+            <div class="card-subtitle" id="divisionChartSubtitle">SEDA-A and SEDA-B academic risk comparison</div>
+          </div>
+          <!-- Chart View Mode Toggle -->
+          <div class="chart-toggle-group" aria-label="Division Chart View Mode">
+            <button type="button" class="chart-toggle-btn active" id="btnChartModeCount">Student Count</button>
+            <button type="button" class="chart-toggle-btn" id="btnChartModePct">Percentage (%)</button>
+          </div>
+        </div>
+        <div class="card-body chart-card-body">
+          <canvas id="divisionStackedCanvas" aria-label="Risk distribution stacked bar chart"></canvas>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="headingShapChart">
+        <div class="chart-card-header">
+          <div>
+            <h2 class="card-title" id="headingShapChart">Top contributing factors (class-wide SHAP)</h2>
+            <div class="card-subtitle">Global feature importance ranking</div>
+          </div>
+          <div class="chart-toggle-group" aria-label="SHAP Factor Filter">
+            <button type="button" class="chart-toggle-btn active" id="btnShapAll">All</button>
+            <button type="button" class="chart-toggle-btn" id="btnShapDrivers">Risk Drivers</button>
+          </div>
+        </div>
+        <div class="card-body chart-card-body">
+          <canvas id="classShapCanvas" aria-label="Class-wide SHAP horizontal bar chart"></canvas>
+        </div>
+      </section>
+    </div>
+
+    <!-- 3. Attention Table (Left) + Recent Interventions Feed (Right) -->
+    <div class="grid-2-1">
+      <section class="card" aria-labelledby="headingAttention">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title" id="headingAttention">Students needing attention</h2>
+            <div class="card-subtitle" id="attentionTableSub">Priority students flagged for early academic support</div>
+          </div>
+          <a href="/pages/students.html?risk=HIGH" class="btn btn-secondary btn-sm" id="btnViewAllFiltered">View all students</a>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <div class="table-container" style="border: none;">
+            <table class="table" id="attentionTable">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Roll No</th>
+                  <th>Division</th>
+                  <th>Risk Level</th>
+                  <th class="text-right">Attendance</th>
+                  <th>Key Factor</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="attentionTableBody">
+                <tr>
+                  <td colspan="7" class="state-loading">Loading student metrics...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="headingInterventions">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title" id="headingInterventions">Recent interventions</h2>
+            <div class="card-subtitle">Active mentoring and parent outreach</div>
+          </div>
+          <a href="/pages/interventions.html" class="btn btn-secondary btn-sm">Log entry</a>
+        </div>
+        <div class="card-body" style="padding: 12px 18px;">
+          <ul class="intervention-feed" id="recentInterventionsList">
+            <li class="state-loading">Loading interventions...</li>
+          </ul>
+        </div>
+      </section>
+    </div>
+
+    <!-- 4. One-line Footnote -->
+    <p class="footnote">Risk levels are estimates to guide support, not final judgements.</p>
+  </div>
+
+  <script src="/assets/vendor/chart.umd.js"></script>
+  <script src="/assets/js/config.js"></script>
+  <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/mock-data.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/custom-select.js"></script>
+  <script src="/assets/js/layout.js"></script>
+  <script src="/assets/js/charts.js"></script>
+  <script src="/assets/js/dashboard.js"></script>
 </body>
 </html>

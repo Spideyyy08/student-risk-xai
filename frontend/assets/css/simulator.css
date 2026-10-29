@@ -1,1 +1,109 @@
-/* Slider panel and result styles */
+/* What-If Simulator Page Styles */
+
+.simulator-student-selector {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.selector-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.comparison-box {
+  background-color: #FAFAFA;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.risk-shift-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 12px 0 16px;
+}
+
+.risk-state-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.risk-state-title {
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.shift-arrow {
+  color: var(--text-muted);
+  font-size: 20px;
+}
+
+.shift-summary-banner {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.shift-summary-banner.improved {
+  border-color: rgba(47, 125, 91, 0.4);
+  background-color: var(--risk-low-bg);
+  color: var(--risk-low);
+}
+
+.shift-summary-banner.worsened {
+  border-color: rgba(176, 58, 58, 0.4);
+  background-color: var(--risk-high-bg);
+  color: var(--risk-high);
+}
+
+.shift-summary-banner.unchanged {
+  color: var(--text);
+}
+
+.dual-prob-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.prob-column-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+@media (max-width: 600px) {
+  .dual-prob-comparison {
+    grid-template-columns: 1fr;
+  }
+  .simulator-student-selector {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .risk-shift-row {
+    gap: 12px;
+  }
+  .risk-shift-row .badge {
+    font-size: 11px;
+    padding: 3px 6px;
+  }
+}
